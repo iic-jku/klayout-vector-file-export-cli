@@ -1,0 +1,138 @@
+##
+## --------------------------------------------------------------------------------
+## SPDX-FileCopyrightText: 2026 Martin Jan Köhler
+## Johannes Kepler University, Institute for Integrated Circuits.
+##
+## This file is part of KPEX
+## (see https://github.com/iic-jku/klayout-vector-file-export-cli).
+##
+## This program is free software: you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program. If not, see <http://www.gnu.org/licenses/>.
+## SPDX-License-Identifier: GPL-3.0-or-later
+## --------------------------------------------------------------------------------
+##
+
+name: Python build
+
+on:
+  push:
+    branches: [ "main", "next_release" ]
+    paths-ignore:
+       - '.gitignore'
+       - '**.md'
+       - '*.sh'
+  pull_request:
+    branches: [ "main", "next_release" ]
+    paths-ignore:
+       - '.gitignore'
+       - '**.md'
+       - '*.sh'
+  workflow_call:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+concurrency:
+  group: ${{ github.repository }}-${{ github.event.number || github.head_ref || github.sha }}-${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  build_and_test:
+    name: Build/Test ${{ matrix.os }}-${{ matrix.build_type }}-py${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      # Set fail-fast to false to ensure that feedback is delivered for all matrix combinations. 
+      # Consider changing this to true when your workflow is stable.
+      fail-fast: false
+
+      # Set up a matrix to run the following 3 configurations:
+      # 1. <Windows, Release, latest MSVC compiler toolchain on the default runner image, default generator>
+      # 2. <Linux, Release, latest GCC compiler toolchain on the default runner image, default generator>
+      # 3. <Linux, Release, latest Clang compiler toolchain on the default runner image, default generator>
+      #
+      # To add more build types (Release, Debug, RelWithDebInfo, etc.) customize the build_type list.
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ['3.12']
+        build_type: [RelWithDebInfo]
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: "[🐍] Setup python ${{ matrix.python-version }}"
+      id: setup-python
+      uses: actions/setup-python@v6
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: "[🐍] Install Poetry"
+      uses: snok/install-poetry@v1
+      with:
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+        virtualenvs-path: .venv
+        installer-parallel: true
+
+    - name: "[🐍] Check version"
+      if: ${{ github.event.release }}
+      run: |
+        version=$(poetry version | awk '{print $2}')
+        tag=$(echo "${{ github.ref }}" | awk '{split($0,p,"/"); print p[3]}')
+        if [ "v$version" != $tag ]; then echo "Release tag ('$tag') and poetry version ('v$version') do not match!"; exit 1; fi;
+      shell: bash
+    
+    - name: "[🐍] Load cached venv"
+      id: cached-poetry-dependencies
+      uses: actions/cache@v5
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+    - name: "[🐍] Install dependencies"
+      run: poetry install --no-interaction --no-root
+      shell: bash    # NOTE: required for windows poetry calls
+
+    - name: "[🐍] Install project"
+      run: poetry install --no-interaction
+      shell: bash    # NOTE: required for windows poetry calls
+
+    - name: "[🐍] Build wheel and source archives"
+      run: poetry build --output dist
+      shell: bash    # NOTE: required for windows poetry calls
+
+    - name: "[🐍] Verify wheel contains generation tech protobuf json messages"
+      run: |
+        unzip -l dist/*.whl | grep klayout_pex_protobuf | grep .pb.json
+      shell: bash
+
+    - name: "[🐍] Verify wheel contains generation protobuf python modules"
+      run: |
+        unzip -l dist/*.whl | grep klayout_pex_protobuf | grep _pb2.py
+      shell: bash
+
+    - name: "[🐍] Store dist artifact"
+      uses: actions/upload-artifact@v6
+      with:
+        name: python-dist-${{ matrix.os }}_py${{ matrix.python-version }}
+        path: dist
+        retention-days: 7
+        if-no-files-found: error
+
+  call-publish-pypi:
+    name: "Publish distribution 📦s to PyPI/TestPyPI"
+    needs: build_and_test
+    concurrency:
+      group: ${{ github.repository }}-${{ github.event.number || github.head_ref || github.sha }}-${{ github.workflow }}-publish-pypi
+      cancel-in-progress: true
+    uses: ./.github/workflows/publish-pypi.yml
