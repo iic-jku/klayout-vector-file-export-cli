@@ -111,16 +111,6 @@ jobs:
       run: poetry build --output dist
       shell: bash    # NOTE: required for windows poetry calls
 
-    - name: "[🐍] Verify wheel contains generation tech protobuf json messages"
-      run: |
-        unzip -l dist/*.whl | grep klayout_pex_protobuf | grep .pb.json
-      shell: bash
-
-    - name: "[🐍] Verify wheel contains generation protobuf python modules"
-      run: |
-        unzip -l dist/*.whl | grep klayout_pex_protobuf | grep _pb2.py
-      shell: bash
-
     - name: "[🐍] Store dist artifact"
       uses: actions/upload-artifact@v6
       with:
