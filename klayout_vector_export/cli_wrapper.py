@@ -219,7 +219,18 @@ class CLIWrapper:
         debug("Call KLayout")
         debug("=" * 60)
 
+        errors = []
+
         # Resolve input path from parsed args (--in / -i)
+        if args.input_path is None:
+            errors += [f"ERROR: Input layout file missing, please provide command line argument --in / -i"]
+        if args.output_path is None:
+            errors += [f"ERROR: Output vector file missing, please provide command line argument --out / -o"]
+
+        if errors:
+            print('\n'.join(errors))
+            sys.exit(1)
+
         input_path = Path(args.input_path).resolve()
 
         # Write settings to a temporary JSON file; deleted automatically when done
@@ -234,6 +245,7 @@ class CLIWrapper:
             settings.save_json(Path(settings_path))
 
         debug(f"  ✔  Settings written to temp file: {settings_path}")
+        print(settings.__dict__)
 
         try:
             result = subprocess.run(
@@ -242,7 +254,7 @@ class CLIWrapper:
                         '-z',   # Non-GUI mode (hidden views)
                         '-nc',  # Don't write a configuration file (implies -t)
                         '-rx',  # Ignore all implicit macros (*.rbm, rbainit, *.lym)
-                        '-r', str(plugin_path.resolve() / 'cli_tool.py'),   # Execute main script on startup
+                        '-r', str(plugin_path.resolve() / 'pymacros' / 'cli_tool.py'),  # Execute main script on startup
                         '-rd', f"input_path={input_path}",
                         '-rd', f"settings_path={settings_path}",
                 ],
@@ -250,7 +262,7 @@ class CLIWrapper:
                 text=True,
             )
             output = (result.stdout + result.stderr).strip()
-            return output or "(no output)"
+            print(output or "(no output)")
         finally:
             # Always clean up the temp settings file
             try:
