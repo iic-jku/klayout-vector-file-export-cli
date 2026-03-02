@@ -247,6 +247,12 @@ class CLIWrapper:
         debug(f"  ✔  Settings written to temp file: {settings_path}")
         print(settings.__dict__)
 
+        # Build subprocess environment:
+        # Set KLAYOUT_PATH="" to prevent KLayout from reading any config files
+        # from additional search paths.
+        klayout_env = os.environ.copy()
+        klayout_env["KLAYOUT_PATH"] = ""
+
         try:
             result = subprocess.run(
                 [
@@ -260,6 +266,7 @@ class CLIWrapper:
                 ],
                 capture_output=True,
                 text=True,
+                env=klayout_env,
             )
             output = (result.stdout + result.stderr).strip()
             print(output or "(no output)")
