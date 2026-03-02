@@ -1,0 +1,58 @@
+[tool.poetry]
+name = "klayout-vector-export"
+version = "0.1"
+description = "Vector File Export CLI Tool for KLayout"
+authors = ["Martin Köhler <info@martinjankoehler.com>"]
+homepage = "https://iic-jku.github.io/klayout-vector-file-export-cli/"
+repository = "https://github.com/iic-jku/klayout-vector-file-export-cli.git"
+license = "GPL-3.0-or-later"
+readme = "README.md"
+keywords = ["electronic", "vlsi", "eda", "ic", "spice",
+            "klayout", "analog", "fsic", "gds", "pdf", "svg", "vector", "graphics"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Manufacturing",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX",
+    "Programming Language :: C++",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)"
+]
+
+packages = [
+    { include = "klayout_vector_export" },
+]
+include = [
+    "klayout-vector-export",
+]
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/iic-jku/klayout-vector-file-export-cli/issues"
+
+[tool.poetry.scripts]
+klayout-vector-export = 'klayout_vector_export.__main__:main'
+
+[tool.poetry.dependencies]
+python = "^3.12"
+rich = ">= 13.9.4"
+rich-argparse = ">= 1.6.0"
+
+[tool.poetry.group.test.dependencies]
+pytest = ">= 8.3.3"
+pytest-cov = ">= 6.0.0"
+pytest-html = ">= 4.1.1"
+
+[tool.poetry.group.dev.dependencies]
+pylint = ">= 3.3.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0", "setuptools>=42"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry_bumpversion.file."klayout_vector_export/version.py"]
+
