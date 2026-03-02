@@ -221,11 +221,14 @@ class CLIWrapper:
 
         errors = []
 
-        # Resolve input path from parsed args (--in / -i)
         if args.input_path is None:
             errors += [f"ERROR: Input layout file missing, please provide command line argument --in / -i"]
+
         if args.output_path is None:
             errors += [f"ERROR: Output vector file missing, please provide command line argument --out / -o"]
+
+        if args.technology is None:
+            errors += [f"ERROR: Technology is missing, please provide command line argument --tech / -t"]
 
         if errors:
             print('\n'.join(errors))
