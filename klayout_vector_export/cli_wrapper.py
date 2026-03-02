@@ -257,15 +257,17 @@ class CLIWrapper:
         klayout_env["KLAYOUT_PATH"] = ""
 
         try:
+            # NOTE: we do not pass -nc, as it would hinder us to find the technology
             result = subprocess.run(
                 [
                         str(exe),
                         '-z',   # Non-GUI mode (hidden views)
-                        '-nc',  # Don't write a configuration file (implies -t)
+                        # '-nc',  # Don't use a configuration file (implies -t)
                         '-rx',  # Ignore all implicit macros (*.rbm, rbainit, *.lym)
                         '-r', str(plugin_path.resolve() / 'pymacros' / 'cli_tool.py'),  # Execute main script on startup
                         '-rd', f"input_path={input_path}",
                         '-rd', f"settings_path={settings_path}",
+                        '-rd', f"technology={args.technology}",
                 ],
                 capture_output=True,
                 text=True,
