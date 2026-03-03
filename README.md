@@ -32,7 +32,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 - Installation of [KLayout](https://klayout.org)
 - Installation of the plugin `VectorFileExportPlugin` (within KLayout using menu item *Tools* → *Manage Packages*)
-
+   - GitHub Source Repository: https://github.com/iic-jku/klayout-vector-file-export
 
 ## Install
 
