@@ -1,13 +1,13 @@
 [tool.poetry]
-name = "klayout-vector-export"
+name = "klayout-vector-file-export-cli"
 version = "0.1"
 description = "Vector File Export CLI Tool for KLayout"
 authors = ["Martin Köhler <info@martinjankoehler.com>"]
-homepage = "https://iic-jku.github.io/klayout-vector-file-export-cli/"
+homepage = "https://github.com/iic-jku/klayout-vector-file-export-cli/"
 repository = "https://github.com/iic-jku/klayout-vector-file-export-cli.git"
 license = "GPL-3.0-or-later"
 readme = "README.md"
-keywords = ["electronic", "vlsi", "eda", "ic", "spice",
+keywords = ["electronic", "vlsi", "eda", "ic",
             "klayout", "analog", "fsic", "gds", "pdf", "svg", "vector", "graphics"]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
