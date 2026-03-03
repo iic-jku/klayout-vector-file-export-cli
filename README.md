@@ -21,7 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 SPDX-License-Identifier: GPL-3.0-or-later
 --------------------------------------------------------------------------------
 -->
-[![PyPi](https://img.shields.io/pypi/v/klayout-vector-export)](https://pypi.org/project/klayout-vector-export/)
+[![PyPi](https://img.shields.io/pypi/v/klayout-vector-file-export-cli)](https://pypi.org/project/klayout-vector-file-export-cli/)
 [![GitHub issues](https://img.shields.io/badge/issue_tracking-github-blue.svg)](https://github.com/iic-jku/klayout-vector-file-export-cli/issues)
 
 # KLayout-Vector-Export
@@ -36,7 +36,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 ## Install
 
-`pip install klayout-vector-export`
+`pip install klayout-vector-file-export-cli`
 
 After that, you should be able to run `klayout-vector-export --help`.
 
