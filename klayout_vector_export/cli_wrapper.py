@@ -32,6 +32,10 @@ import subprocess
 import sys
 import tempfile
 from typing import *
+import xml.etree.ElementTree as ET
+
+import klayout_vector_export.version as cli_wrapper_version
+
 
 DEBUG = False
 
@@ -162,6 +166,27 @@ class CLIWrapper:
         debug("\nAdding plugin directory to sys.path …")
         self.add_plugin_to_sys_path(plugin_dir)
         return plugin_dir
+    
+    def get_plugin_version(self, plugin_dir: Path) -> str:
+        xml_path = plugin_dir / 'grain.xml'
+        try:
+            tree = ET.parse(xml_path)
+            root = tree.getroot()
+
+            # Try common version locations in grain.xml
+            # 1. Direct <version> child of root
+            version = root.findtext("version")
+
+            # 2. Namespaced or nested — try <salt-grain><version>
+            if version is None:
+                version = root.findtext("./salt-grain/version")
+
+            # 3. As an attribute on the root element
+            if version is None:
+                version = root.get("version")
+            return version
+        except Exception as e:
+            raise Exception(f"Unable to read plugin grain.xml from {xml_path} due to exception: {e}")
 
     def main(self):
         global DEBUG
@@ -192,13 +217,13 @@ class CLIWrapper:
 
         # 3. Locate the plugin
 
-        self.locate_and_add_plugin_to_sys_path(
+        plugin_path1 = self.locate_and_add_plugin_to_sys_path(
             plugin_name='KLayoutPluginUtils',
             devel_roots=devel_roots,
             git_repo_name='klayout-plugin-utils'
         )
-
-        plugin_path = self.locate_and_add_plugin_to_sys_path(
+        
+        plugin_path2 = self.locate_and_add_plugin_to_sys_path(
             plugin_name='VectorFileExportPlugin',
             devel_roots=devel_roots,
             git_repo_name='klayout-vector-file-export'
@@ -207,6 +232,17 @@ class CLIWrapper:
         debug("=" * 60)
         debug("Parse arguments (parser is part of VectorFileExport python plugin)")
         debug("=" * 60)
+
+        # Handle version here, as both CLI wrapper version and Plugin version has to be reported
+        if '-v' in sys.argv or '--version' in sys.argv:
+            version_data = [
+                ('CLI-Wrapper', cli_wrapper_version.__version__),
+                ('KLayoutPluginUtils', self.get_plugin_version(plugin_path1)),
+                ('VectorFileExportPlugin', self.get_plugin_version(plugin_path2)),
+            ]
+            plugin_versions = [f"{n} {v}" for n, v in version_data]
+            print(' / '.join(plugin_versions))
+            sys.exit(0)
 
         from cli_args import build_parser, args_to_settings, validate_settings
         parser = build_parser()
@@ -264,7 +300,7 @@ class CLIWrapper:
                         '-z',   # Non-GUI mode (hidden views)
                         # '-nc',  # Don't use a configuration file (implies -t)
                         '-rx',  # Ignore all implicit macros (*.rbm, rbainit, *.lym)
-                        '-r', str(plugin_path.resolve() / 'pymacros' / 'cli_tool.py'),  # Execute main script on startup
+                        '-r', str(plugin_path2.resolve() / 'pymacros' / 'cli_tool.py'),  # Execute main script on startup
                         '-rd', f"input_path={input_path}",
                         '-rd', f"settings_path={settings_path}",
                         '-rd', f"technology={args.technology}",
