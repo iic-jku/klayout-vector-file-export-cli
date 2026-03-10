@@ -284,7 +284,6 @@ class CLIWrapper:
             settings.save_json(Path(settings_path))
 
         debug(f"  ✔  Settings written to temp file: {settings_path}")
-        print(settings.__dict__)
 
         # Build subprocess environment:
         # Set KLAYOUT_PATH="" to prevent KLayout from reading any config files
