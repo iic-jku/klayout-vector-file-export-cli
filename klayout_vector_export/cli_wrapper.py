@@ -272,6 +272,8 @@ class CLIWrapper:
 
         input_path = Path(args.input_path).resolve()
 
+        keep_json = hasattr(args, 'keep_json') and args.keep_json
+
         # Write settings to a temporary JSON file; deleted automatically when done
         with tempfile.NamedTemporaryFile(
             mode='w',
@@ -311,10 +313,10 @@ class CLIWrapper:
             output = (result.stdout + result.stderr).strip()
             print(output or "(no output)")
         finally:
-            # Always clean up the temp settings file
             try:
-                os.unlink(settings_path)
-                debug(f"  ✔  Temp settings file removed: {settings_path}")
+                if not keep_json: 
+                    os.unlink(settings_path)
+                    debug(f"  ✔  Temp settings file removed: {settings_path}")
             except OSError:
                 pass
 
