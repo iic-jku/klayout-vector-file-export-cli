@@ -300,11 +300,13 @@ class CLIWrapper:
 
         debug(f"  ✔  Settings written to temp file: {settings_path}")
 
-        # Build subprocess environment:
-        # Set KLAYOUT_PATH="" to prevent KLayout from reading any config files
-        # from additional search paths.
+        # NOTE: we no longer do this, as it hindered us to find the technologies!
+        #       this error could be reproduced on IIC-OSIC-TOOLS
+        #
+        #     Set KLAYOUT_PATH="" to prevent KLayout from reading any config files
+        #     from additional search paths.
         klayout_env = os.environ.copy()
-        klayout_env["KLAYOUT_PATH"] = ""
+        # klayout_env["KLAYOUT_PATH"] = ""
 
         try:
             # NOTE: we do not pass -nc, as it would hinder us to find the technology
