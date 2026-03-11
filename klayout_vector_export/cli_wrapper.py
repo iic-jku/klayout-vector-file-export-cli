@@ -245,16 +245,20 @@ class CLIWrapper:
             sys.exit(0)
 
         from cli_args import build_parser, args_to_settings, validate_settings
+
+        try:
+            from cli_args import CLIArgumentValidationError
+        except ImportError:
+            # for compatibility with older plugin versions,
+            # declare a fallback that prints whatever the exception carries
+            class CLIArgumentValidationError(Exception):
+                pass
+
         parser = build_parser()
         args = parser.parse_args(sys.argv[1:])
 
         settings = args_to_settings(args)
-        validate_settings(settings)
-
-        debug("=" * 60)
-        debug("Call KLayout")
-        debug("=" * 60)
-
+        
         errors = []
 
         if args.input_path is None:
@@ -266,9 +270,18 @@ class CLIWrapper:
         if args.technology is None:
             errors += [f"ERROR: Technology is missing, please provide command line argument --tech / -t"]
 
+        try:
+            validate_settings(settings)
+        except CLIArgumentValidationError as e:
+            errors += e.errors if hasattr(e, 'errors') else list(e.args)
+        
         if errors:
             print('\n'.join(errors))
             sys.exit(1)
+        
+        debug("=" * 60)
+        debug("Call KLayout")
+        debug("=" * 60)
 
         input_path = Path(args.input_path).resolve()
 
