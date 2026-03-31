@@ -258,7 +258,24 @@ class CLIWrapper:
         args = parser.parse_args(sys.argv[1:])
 
         settings = args_to_settings(args)
-        
+
+        # Infer --format from --out suffix, or warn when they mismatch
+        if args.output_path is not None:
+            from vector_file_export_settings import VectorFileFormat
+            out_suffix = Path(args.output_path).suffix  # e.g. '.pdf'
+            if args.file_format is None:
+                try:
+                    settings.file_format = VectorFileFormat(out_suffix.lstrip('.'))
+                    debug(f"  ℹ  Inferred --format={out_suffix.lstrip('.')} from output file suffix")
+                except ValueError:
+                    pass  # unknown suffix, will be caught by validation or use default
+            else:
+                expected_suffix = settings.file_format.suffix  # e.g. '.pdf' (from @property)
+                if out_suffix.lower() != expected_suffix.lower():
+                    print(f"WARNING: Output file suffix '{out_suffix}' does not match "
+                          f"specified format '{settings.file_format.value}' "
+                          f"(expected suffix '{expected_suffix}')")
+
         errors = []
 
         if args.input_path is None:
