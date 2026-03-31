@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "klayout-vector-file-export-cli"
-version = "0.4"
+version = "0.5"
 description = "Vector File Export CLI Tool for KLayout"
 authors = ["Martin Köhler <info@martinjankoehler.com>"]
 homepage = "https://github.com/iic-jku/klayout-vector-file-export-cli/"
